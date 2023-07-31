@@ -1,0 +1,10 @@
+.sortingVisualizer {
+    height: 500px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.bar {
+    width: 2%;
+    background: blue;
+}
