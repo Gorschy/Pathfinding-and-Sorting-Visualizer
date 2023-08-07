@@ -93,15 +93,26 @@ const PathfindingVisualizer = () => {
     }, []);
 
     const startPathfinding = async () => {
-        if (algorithm === 'DFS') {
-            const found = await dfs(grid, startPos, endPos, new Set(), setGrid);
-            if (found) {
-                alert('Path found!');
-            } else {
-                alert('No path found!');
-            }
+        let found = false;
+        switch (algorithm) {
+            case 'DFS':
+                found = await dfs(grid, startPos, endPos, new Set(), setGrid);
+                break;
+            case 'BFS':
+                found = await bfs(grid, startPos, endPos, setGrid);
+                break;
+            default:
+                alert('Invalid algorithm selected');
+                return;
+        }
+    
+        if (found) {
+            alert('Path found!');
+        } else {
+            alert('No path found!');
         }
     };
+    
     
     
 
@@ -115,6 +126,7 @@ const PathfindingVisualizer = () => {
             <div>
                 <select value={algorithm} onChange={e => setAlgorithm(e.target.value)}>
                     <option value="DFS">Depth-First Search</option>
+                    <option value="BFS">Breadth-First Search</option>
                 </select>
                 <button onClick={startPathfinding}>Start</button>
                 <button onClick={clearGrid}>Clear Grid</button>
@@ -204,6 +216,49 @@ async function dfs(grid, startPos, endPos, visited, setGrid) {
 
     return false;
 }
+
+async function bfs(grid, startPos, endPos, setGrid) {
+    const queue = [];
+    const visited = new Set();
+    
+    queue.push(startPos);
+    visited.add(`${startPos.row}-${startPos.col}`);
+
+    while (queue.length > 0) {
+        const current = queue.shift();
+
+        if (current.row === endPos.row && current.col === endPos.col) {
+            return true;
+        }
+
+        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        for (let direction of directions) {
+            const newRow = current.row + direction[0];
+            const newCol = current.col + direction[1];
+
+            if (newRow < 0 || newRow >= grid.length || newCol < 0 || newCol >= grid[0].length || grid[newRow][newCol] === WALL || visited.has(`${newRow}-${newCol}`)) {
+                continue;
+            }
+
+            visited.add(`${newRow}-${newCol}`);
+            queue.push({ row: newRow, col: newCol });
+            
+            grid[newRow][newCol] = 'VISITING';
+            setGrid(newGrid => newGrid.map((row, rIdx) => row.map((cell, cIdx) => {
+                if (rIdx === newRow && cIdx === newCol) {
+                    return 'VISITING';
+                } else {
+                    return cell;
+                }
+            })));
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    return false;
+}
+
 
 
 
